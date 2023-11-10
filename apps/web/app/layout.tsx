@@ -3,8 +3,8 @@ import type { Metadata } from "next";
 import { GeistSans } from "geist/font/sans";
 import { Header } from "../@/components/ui/header";
 import Footer from "../@/components/ui/footer";
-import { WagmiConfig } from "wagmi";
 import { wagmiConfig } from "../@/lib/config";
+import { WagmiConfig } from "wagmi";
 
 export const metadata: Metadata = {
   title: "Create Turborepo",
@@ -17,8 +17,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }): JSX.Element {
   return (
-    <WagmiConfig config={wagmiConfig}>
-      <html lang="en">
+    <html lang="en">
+      <WagmiConfig config={wagmiConfig}>
         <body className={GeistSans.className}>
           <div className="flex h-screen w-screen overflow-x-hidden dark flex-col px-32 items-center py-4 bg-black text-gray-200">
             <Header />
@@ -28,7 +28,7 @@ export default function RootLayout({
             <Footer />
           </div>
         </body>
-      </html>
-    </WagmiConfig>
+      </WagmiConfig>
+    </html>
   );
 }

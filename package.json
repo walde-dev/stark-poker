@@ -13,5 +13,8 @@
     "turbo": "latest"
   },
   "packageManager": "pnpm@8.6.10",
-  "name": "stark-poker"
+  "name": "stark-poker",
+  "dependencies": {
+    "encoding": "^0.1.13"
+  }
 }
