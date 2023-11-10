@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { Button } from "./button";
+import { WalletButton } from "../WalletButton";
 
 export function Header() {
   return (
@@ -17,7 +18,7 @@ export function Header() {
           <Link href={"/leaderboard"}>Leaderboard</Link>
         </Button>
         <Button variant={"link"}>Learn more</Button>
-        <Button>Connect Wallet</Button>
+        <WalletButton />
       </div>
     </header>
   );

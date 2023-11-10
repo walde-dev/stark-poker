@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.0.2",
+    "@web3modal/wagmi": "^3.2.1",
+    "boring-avatars": "^1.10.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "geist": "^1.1.0",
@@ -19,7 +21,9 @@
     "react-dom": "^18.2.0",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
-    "ui": "workspace:*"
+    "ui": "workspace:*",
+    "viem": "^1.18.9",
+    "wagmi": "^1.4.6"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.4.19",
