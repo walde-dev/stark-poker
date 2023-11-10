@@ -6,19 +6,33 @@ import { Suspense } from "react";
 import Avatar from "boring-avatars";
 import { useAccount } from "wagmi";
 
-export function WalletButton() {
+export function WalletButton({
+  className,
+  showAvatar = true,
+}: {
+  className?: string;
+  showAvatar?: boolean;
+}) {
   const { address, isConnected } = useAccount();
   const { open } = useWeb3Modal();
 
-  if (isConnected && !!address) {
+  if (isConnected && !!address && showAvatar) {
     return (
       <button onClick={() => open()}>
         <Suspense>
-          <Avatar size={32} name={address} />
+          <Avatar variant={"beam"} size={32} name={address} />
         </Suspense>
       </button>
     );
   }
 
-  return <Button onClick={() => open()}>Connect Wallet</Button>;
+  if (isConnected && !!address && !showAvatar) {
+    return <Button className={className}>Start playing</Button>;
+  }
+
+  return (
+    <Button className={className} onClick={() => open()}>
+      Connect Wallet
+    </Button>
+  );
 }

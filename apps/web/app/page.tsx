@@ -1,3 +1,5 @@
+import { useAccount } from "wagmi";
+import { WalletButton } from "../@/components/WalletButton";
 import { Button } from "../@/components/ui/button";
 
 export default function Page(): JSX.Element {
@@ -15,9 +17,7 @@ export default function Page(): JSX.Element {
         <h3 className="font-medium mt-10 text-3xl text-gray-400">
           Experience Unrivaled Security and Speed
         </h3>
-        <Button size={"lg"} className="text-lg mt-12">
-          Connect your Wallet
-        </Button>
+        <WalletButton showAvatar={false} className="mt-10"/>
       </div>
     </main>
   );
