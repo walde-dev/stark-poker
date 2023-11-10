@@ -1,9 +1,24 @@
+import { Button } from "../@/components/ui/button";
+
 export default function Page(): JSX.Element {
   return (
-    <main className="bg-gray-950 h-screen w-screen overflow-x-hidden flex justify-center items-center">
-      <h1 className="text-7xl shadow-md font-bold bg-gradient-to-r from-[#2700D7] via-[#790186] to-[#E2001E] text-transparent bg-clip-text">
-        zk stark-poker
-      </h1>
+    <main className="w-full h-full flex justify-center py-24">
+      <div className="flex items-center flex-col">
+        <>
+          <h1 className="font-semibold text-7xl leading-snug text-center [text-wrap:balance] max-w-[2/3]">
+            Fully on-chain Blackjack powered by{" "}
+            <span className="bg-[#0C0C4F] text-[#E87880] px-6 py-1 rounded-2xl">
+              Starknet
+            </span>
+          </h1>
+        </>
+        <h3 className="font-medium mt-10 text-3xl text-gray-400">
+          Experience Unrivaled Security and Speed
+        </h3>
+        <Button size={"lg"} className="text-lg mt-12">
+          Connect your Wallet
+        </Button>
+      </div>
     </main>
   );
 }
