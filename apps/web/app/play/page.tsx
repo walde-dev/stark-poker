@@ -23,22 +23,25 @@ import {
 } from "../../@/components/ui/card";
 import Spinner from "../../@/components/ui/spinner";
 import { UserAccountContext } from "../../@/components/UserAccountProvider";
+import { WalletButton } from "../../@/components/WalletButton";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
 export default function Play() {
   const [gameState, setGameState] = useState<GameState>("start");
 
-  // if (!isConnected || !address) {
-  //   return (
-  //     <main className="flex w-full h-full flex-col justify-center items-center">
-  //       <h1 className="text-3xl w-full  text-center mt-12 font-semibold text-gray-200 [text-wrap:balance] max-w-[500px]">
-  //         You need connect your wallet before joining a game
-  //       </h1>
-  //       {/* <WalletButton className=" mt-12" /> */}
-  //     </main>
-  //   );
-  // }
+  const account = useContext(UserAccountContext);
+
+  if (Boolean(!account.connection) || Boolean(!account.address)) {
+    return (
+      <main className="flex w-full h-full flex-col justify-center items-center">
+        <h1 className="text-3xl w-full  text-center mt-12 font-semibold text-gray-200 [text-wrap:balance] max-w-[500px]">
+          You need connect your wallet before joining a game
+        </h1>
+        <WalletButton className=" mt-12" />
+      </main>
+    );
+  }
 
   if (gameState === "searching") {
     return <SearchingState setGameState={setGameState} />;
@@ -166,6 +169,9 @@ function StartState({
           </Button>
         </div>
       </Card>
+      <span className="text-gray-400">
+        <span className="text-white">23</span> online players right now
+      </span>
     </main>
   );
 }

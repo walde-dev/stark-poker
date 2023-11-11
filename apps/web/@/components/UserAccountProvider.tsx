@@ -39,7 +39,7 @@ export default function UserAccountProvider({
   const [address, setAddress] = useState<null | string>(null);
 
   const connectToStarknet = async () => {
-    const init = await connect({ modalMode: "neverAsk" });
+    const init = await connect();
 
     if (init && init.isConnected) {
       setConnection(init);
