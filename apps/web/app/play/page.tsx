@@ -1,7 +1,5 @@
 "use client";
 
-import { useAccount } from "wagmi";
-import { WalletButton } from "../../@/components/WalletButton";
 import { useUsername } from "../../@/lib/useUsername";
 import {
   Dialog,
@@ -20,29 +18,27 @@ import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
   CardContent,
-  CardDescription,
   CardHeader,
   CardTitle,
 } from "../../@/components/ui/card";
 import Spinner from "../../@/components/ui/spinner";
+import useAccount from "../../@/lib/useAccount";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
 export default function Play() {
-  const { address, isConnected } = useAccount();
-
   const [gameState, setGameState] = useState<GameState>("start");
 
-  if (!isConnected || !address) {
-    return (
-      <main className="flex w-full h-full flex-col justify-center items-center">
-        <h1 className="text-3xl w-full  text-center mt-12 font-semibold text-gray-200 [text-wrap:balance] max-w-[500px]">
-          You need connect your wallet before joining a game
-        </h1>
-        <WalletButton className=" mt-12" />
-      </main>
-    );
-  }
+  // if (!isConnected || !address) {
+  //   return (
+  //     <main className="flex w-full h-full flex-col justify-center items-center">
+  //       <h1 className="text-3xl w-full  text-center mt-12 font-semibold text-gray-200 [text-wrap:balance] max-w-[500px]">
+  //         You need connect your wallet before joining a game
+  //       </h1>
+  //       {/* <WalletButton className=" mt-12" /> */}
+  //     </main>
+  //   );
+  // }
 
   if (gameState === "searching") {
     return <SearchingState setGameState={setGameState} />;
@@ -56,9 +52,11 @@ function StartState({
 }: {
   setGameState: (state: GameState) => void;
 }) {
-  const { address, isConnected } = useAccount();
+  const { address } = useAccount();
 
-  const { username, handleUsernameChange } = useUsername({ address: address });
+  const { username, handleUsernameChange } = useUsername({
+    address: address ?? "",
+  });
   const { toast } = useToast();
 
   const [usernameInput, setUsernameInput] = useState("");
@@ -70,7 +68,7 @@ function StartState({
             <CardTitle>Your Profile</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center space-x-4">
-            <Avatar variant={"beam"} size={32} name={address} />
+            <Avatar variant={"beam"} size={32} name={address ?? ""} />
             <div className="flex items-center">
               <span className="text-xl">{username}</span>
               <DialogTrigger>
@@ -105,13 +103,15 @@ function StartState({
             </DialogDescription>
           </DialogHeader>
           <div className="flex mt-4 items-center  space-x-6">
-            <Avatar variant={"beam"} size={32} name={address} />
+            <Avatar name={address ?? ""} size={32} variant={"beam"} />
             <Input
-              id="username"
               className="text-gray-200"
-              placeholder={"Your username"}
+              id="username"
+              onChange={(e) => {
+                setUsernameInput(e.target.value);
+              }}
+              placeholder="Your username"
               value={usernameInput || username}
-              onChange={(e) => setUsernameInput(e.target?.value)}
             />
             <DialogClose>
               <Button
@@ -142,7 +142,9 @@ function StartState({
         <div className="flex items-center w-full mt-4 space-x-4">
           <Input type={"number"} placeholder="Your Bet (in STRK)" />
           <Button
-            onClick={() => setGameState("searching")}
+            onClick={() => {
+              setGameState("searching");
+            }}
             className="min-w-[25%] whitespace-nowrap"
           >
             Start
@@ -181,7 +183,9 @@ function SearchingState({
         <Spinner className="mt-4" />
         <Button
           variant={"outline"}
-          onClick={() => setGameState("start")}
+          onClick={() => {
+            setGameState("start");
+          }}
           className="mt-4 min-w-[25%] whitespace-nowrap"
         >
           Cancel

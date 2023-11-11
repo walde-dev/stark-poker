@@ -1,11 +1,14 @@
+/* eslint-disable unicorn/filename-case -- fdsf */
+/* eslint-disable @typescript-eslint/no-unused-vars -- fsd */
+/* eslint-disable import/no-extraneous-dependencies -- fdf */
+/* eslint-disable @typescript-eslint/no-misused-promises -- fsdf */
 "use client";
 
 import { Button } from "./ui/button";
-import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { Suspense } from "react";
 import Avatar from "boring-avatars";
-import { useAccount } from "wagmi";
 import Link from "next/link";
+import useAccount from "../lib/useAccount";
 
 export function WalletButton({
   className,
@@ -14,20 +17,27 @@ export function WalletButton({
   className?: string;
   showAvatar?: boolean;
 }) {
-  const { address, isConnected } = useAccount();
-  const { open } = useWeb3Modal();
+  const {
+    address,
+    connection,
+    provider,
+    setAddress,
+    setConnection,
+    setProvider,
+    connect,
+  } = useAccount();
 
-  if (isConnected && !!address && showAvatar) {
+  if (Boolean(connection) && showAvatar && Boolean(address)) {
     return (
       <button onClick={() => open()}>
         <Suspense>
-          <Avatar variant={"beam"} size={32} name={address} />
+          <Avatar name={address as string} size={32} variant="beam" />
         </Suspense>
       </button>
     );
   }
 
-  if (isConnected && !!address && !showAvatar) {
+  if (Boolean(connection) && !showAvatar) {
     return (
       <Button className={className}>
         <Link href="/play">Start playing</Link>
@@ -36,7 +46,7 @@ export function WalletButton({
   }
 
   return (
-    <Button className={className} onClick={() => open()}>
+    <Button className={className} onClick={() => connect()}>
       Connect Wallet
     </Button>
   );

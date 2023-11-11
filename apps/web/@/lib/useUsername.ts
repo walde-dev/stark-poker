@@ -9,7 +9,7 @@ export function useUsername({ address }: { address?: string }) {
   //if there is no username in localstorage, prompt the user to enter a username
 
   const [username, setUsername] = useState(
-    !!address ? localStorage.getItem(address) || "" : ""
+    address ? localStorage.getItem(address) || "" : ""
   );
 
   const handleUsernameChange = (e: string) => {
