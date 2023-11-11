@@ -31,7 +31,7 @@ export function WalletButton({
     return (
       <button onClick={() => open()}>
         <Suspense>
-          <Avatar name={address as string} size={32} variant="beam" />
+          <Avatar name={address ?? ""} size={32} variant="beam" />
         </Suspense>
       </button>
     );
