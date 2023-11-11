@@ -5,6 +5,7 @@ import { useWeb3Modal } from "@web3modal/wagmi/react";
 import { Suspense } from "react";
 import Avatar from "boring-avatars";
 import { useAccount } from "wagmi";
+import Link from "next/link";
 
 export function WalletButton({
   className,
@@ -27,7 +28,11 @@ export function WalletButton({
   }
 
   if (isConnected && !!address && !showAvatar) {
-    return <Button className={className}>Start playing</Button>;
+    return (
+      <Button className={className}>
+        <Link href="/play">Start playing</Link>
+      </Button>
+    );
   }
 
   return (

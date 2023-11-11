@@ -12,22 +12,22 @@ const mockData = [
   {
     user: "walde",
     address: "0xw4ld3",
-    winnings: "$250.00",
+    winnings: "250.00 STRK",
   },
   {
     user: "tachys",
     address: "0xt4chys",
-    winnings: "$200.00",
+    winnings: "200.00 STRK",
   },
   {
     user: "joe",
     address: "0xj03",
-    winnings: "$150.00",
+    winnings: "150.00 STRK",
   },
   {
     user: "alice",
     address: "0x4l1c3",
-    winnings: "$100.00",
+    winnings: "100.00 STRK",
   },
 ];
 
