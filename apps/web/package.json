@@ -25,6 +25,8 @@
     "pino-pretty": "^10.2.3",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
+    "starkjs": "^1.0.0",
+    "starknet": "^5.19.5",
     "starknetkit": "^1.0.12",
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",

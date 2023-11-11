@@ -13,7 +13,7 @@ import {
 import { Button } from "../../@/components/ui/button";
 import Avatar from "boring-avatars";
 import { Input } from "../../@/components/ui/input";
-import { ReactNode, useContext, useState } from "react";
+import { ReactNode, useContext, useEffect, useState } from "react";
 import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
@@ -30,6 +30,7 @@ import {
   getCardByNumber,
   getRandomCard,
 } from "../../@/lib/utils";
+import { Contract, json } from "starknet";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -56,7 +57,7 @@ export default function Play() {
   if (gameState === "playing") {
     return <PlayingState setGameState={setGameState} />;
   }
-  
+
   return <StartState setGameState={setGameState} />;
 }
 
@@ -160,7 +161,7 @@ function StartState({
               setGameState("searching");
               setTimeout(() => {
                 setGameState("playing");
-              }, 3000);
+              }, 300);
             }}
             className="min-w-[25%] whitespace-nowrap"
           >
@@ -230,10 +231,71 @@ function PlayingState({
   );
 }
 
+type CardWrapper = {
+  card: number;
+  encryptedBy1: number;
+  encryptedBy2: number;
+  owner: number;
+};
 function BlackJackTable() {
+  const [gameState, setGameState] = useState<string>();
+  const [handHouse, setHandHouse] = useState<Array<number>>([]);
+  const [handP1, setHandP1] = useState<Array<number>>([]);
+  const [handP2, setHandP2] = useState<Array<number>>([]);
+
+  const account = useContext(UserAccountContext);
+
+  useEffect(() => {
+    const init = async () => {
+      console.log("INIT");
+      const testAddress =
+        "0x06164fdbb2a54ebc79d84f5b817f763a8530c865274394308d211d4d919d7024";
+
+      // @ts-expect-error aas
+      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- aa
+      const { abi: testAbi } = await account.provider.getClassAt(testAddress);
+
+      const myTestContract = new Contract(
+        testAbi,
+        testAddress,
+        account.provider as unknown as any
+      );
+      if (testAbi === undefined) {
+        throw new Error("no abi.");
+      }
+      console.log("LOADING STATE");
+      const state: Array<CardWrapper> =
+        await myTestContract.readEncryptedCardStack();
+      let handHouse: Array<number> = [];
+      let handP1: Array<number> = [];
+      let handP2: Array<number> = [];
+      for (let i = 0; i < state.length; i++) {
+        console.log("STATE", state[i], i);
+        if (state[i].owner == 3) {
+          handHouse.push(parseInt(state[i].card.toString()));
+        } else if (state[i].owner == 1) {
+          handP1.push(parseInt(state[i].card.toString()));
+        } else if (state[i].owner == 2) {
+          handP2.push(parseInt(state[i].card.toString()));
+        }
+      }
+      console.log("STATE LOADED", handHouse);
+      setHandHouse(handHouse);
+      setHandP1(handP1);
+      setHandP2(handP2);
+    };
+
+    init();
+  }, []);
+
+  console.log(handHouse, handP1, handP2);
+
   return (
     <div className="w-full h-full flex flex-col justify-between items-center">
-      <PlayingHand player={"Dealer"} cards={[getRandomCard(), "hidden"]} />
+      <PlayingHand
+        player={"Dealer"}
+        cards={handHouse.map((c) => getCardByNumber(c))}
+      />
       <Card className="p-4 flex flex-col gap-y-2">
         <span className="text-lg">Your Turn</span>
         <div className="grid grid-cols-2 gap-x-2 items-center">
@@ -244,11 +306,11 @@ function BlackJackTable() {
       <div className="w-full flex items-center justify-between">
         <PlayingHand
           player={"Player 1"}
-          cards={Array.from({ length: 3 }, () => getRandomCard())}
+          cards={handP1.map((c) => getCardByNumber(c))}
         />
         <PlayingHand
           player={"Player 2"}
-          cards={Array.from({ length: 3 }, () => getRandomCard())}
+          cards={handP2.map((c) => getCardByNumber(c))}
         />
       </div>
     </div>
