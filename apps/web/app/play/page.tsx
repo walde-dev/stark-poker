@@ -13,7 +13,7 @@ import {
 import { Button } from "../../@/components/ui/button";
 import Avatar from "boring-avatars";
 import { Input } from "../../@/components/ui/input";
-import { useState } from "react";
+import { useContext, useState } from "react";
 import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
@@ -22,7 +22,7 @@ import {
   CardTitle,
 } from "../../@/components/ui/card";
 import Spinner from "../../@/components/ui/spinner";
-import useAccount from "../../@/lib/useAccount";
+import { UserAccountContext } from "../../@/components/UserAccountProvider";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -52,11 +52,12 @@ function StartState({
 }: {
   setGameState: (state: GameState) => void;
 }) {
-  const { address } = useAccount();
+  const account = useContext(UserAccountContext);
 
   const { username, handleUsernameChange } = useUsername({
-    address: address ?? "",
+    address: account.address ?? "",
   });
+
   const { toast } = useToast();
 
   const [usernameInput, setUsernameInput] = useState("");
@@ -68,7 +69,7 @@ function StartState({
             <CardTitle>Your Profile</CardTitle>
           </CardHeader>
           <CardContent className="flex items-center space-x-4">
-            <Avatar variant={"beam"} size={32} name={address ?? ""} />
+            <Avatar variant={"beam"} size={32} name={account.address ?? ""} />
             <div className="flex items-center">
               <span className="text-xl">{username}</span>
               <DialogTrigger>
@@ -103,7 +104,7 @@ function StartState({
             </DialogDescription>
           </DialogHeader>
           <div className="flex mt-4 items-center  space-x-6">
-            <Avatar name={address ?? ""} size={32} variant={"beam"} />
+            <Avatar name={account.address ?? ""} size={32} variant={"beam"} />
             <Input
               className="text-gray-200"
               id="username"

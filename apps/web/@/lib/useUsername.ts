@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export function useUsername({ address }: { address?: string }) {
   //write a hook that initializes a username if none is saved in localstorage that is mapped to the given address
@@ -11,6 +11,11 @@ export function useUsername({ address }: { address?: string }) {
   const [username, setUsername] = useState(
     address ? localStorage.getItem(address) || "" : ""
   );
+
+  useEffect(() => {
+    if (!address) return;
+    setUsername(localStorage.getItem(address) || "");
+  }, [address]);
 
   const handleUsernameChange = (e: string) => {
     if (!address) return;

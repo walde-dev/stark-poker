@@ -3,7 +3,6 @@
 /* eslint-disable import/no-extraneous-dependencies -- sf*/
 
 import { WalletButton } from "../@/components/WalletButton";
-import { connect } from "starknetkit";
 
 //GlobalContext for connection, provider and address
 

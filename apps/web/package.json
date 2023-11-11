@@ -26,8 +26,7 @@
     "tailwind-merge": "^2.0.0",
     "tailwindcss-animate": "^1.0.7",
     "ui": "workspace:*",
-    "viem": "^1.18.9",
-    "wagmi": "^1.4.6"
+    "viem": "^1.18.9"
   },
   "devDependencies": {
     "@next/eslint-plugin-next": "^13.4.19",

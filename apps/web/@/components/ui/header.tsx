@@ -18,7 +18,7 @@ export function Header() {
           <Link href={"/leaderboard"}>Leaderboard</Link>
         </Button>
         <Button variant={"link"}>Learn more</Button>
-        <WalletButton />
+        <WalletButton showAvatar />
       </div>
     </header>
   );
