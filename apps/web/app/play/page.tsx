@@ -25,6 +25,11 @@ import Spinner from "../../@/components/ui/spinner";
 import { UserAccountContext } from "../../@/components/UserAccountProvider";
 import { WalletButton } from "../../@/components/WalletButton";
 import Image from "next/image";
+import {
+  calculateScore,
+  getCardByNumber,
+  getRandomCard,
+} from "../../@/lib/utils";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -228,10 +233,7 @@ function PlayingState({
 function BlackJackTable() {
   return (
     <div className="w-full h-full flex flex-col justify-between items-center">
-      <PlayingHand
-        player={"Dealer"}
-        cards={["clubs_ace", "spades_3", "spades_10"]}
-      />
+      <PlayingHand player={"Dealer"} cards={[getRandomCard(), "hidden"]} />
       <Card className="p-4 flex flex-col gap-y-2">
         <span className="text-lg">Your Turn</span>
         <div className="grid grid-cols-2 gap-x-2 items-center">
@@ -242,27 +244,24 @@ function BlackJackTable() {
       <div className="w-full flex items-center justify-between">
         <PlayingHand
           player={"Player 1"}
-          cards={["clubs_ace", "spades_3", "spades_10"]}
+          cards={Array.from({ length: 3 }, () => getRandomCard())}
         />
         <PlayingHand
           player={"Player 2"}
-          cards={["diamonds_2", "spades_5", "hearts_jack"]}
-          busted
+          cards={Array.from({ length: 3 }, () => getRandomCard())}
         />
       </div>
     </div>
   );
 }
 
-function PlayingHand({
-  player,
-  cards,
-  busted,
-}: {
-  player: string;
-  cards: string[];
-  busted?: boolean;
-}) {
+function PlayingHand({ player, cards }: { player: string; cards: string[] }) {
+  const score = calculateScore({
+    cards: cards.map((card) => card.split("_")[1] as CardValue),
+  });
+
+  const busted = score > 21;
+
   return (
     <Card className={`relative p-4 flex flex-col ${busted && "opacity-60"}`}>
       {busted && (
@@ -271,13 +270,13 @@ function PlayingHand({
         </span>
       )}
       <span className="text-lg">{player}</span>
-      <span className="text-gray-400">Total Score: 12</span>
+      {Boolean(score) && !isNaN(score) && (
+        <span className="text-gray-400">Total Score: {score}</span>
+      )}{" "}
       <ul className="flex gap-x-2 mt-2">
         {cards.map((card) => {
           const face = card.split("_")[0];
           const value = card.split("_")[1];
-
-          if (!face || !value) return null;
 
           return (
             <li key={card}>
@@ -290,8 +289,8 @@ function PlayingHand({
   );
 }
 
-type CardFace = "clubs" | "diamonds" | "hearts" | "spades";
-type CardValue =
+export type CardFace = "clubs" | "diamonds" | "hearts" | "spades";
+export type CardValue =
   | "1"
   | "2"
   | "3"
@@ -307,7 +306,17 @@ type CardValue =
   | "king"
   | "ace";
 
-function PlayingCard({ face, value }: { face: CardFace; value: CardValue }) {
+function PlayingCard({ face, value }: { face?: CardFace; value?: CardValue }) {
+  if (!face || !value) {
+    return (
+      <Image
+        alt="playing_card"
+        src={`/svg_playing_cards/backs/red.svg`}
+        height={100}
+        width={100}
+      />
+    );
+  }
   return (
     <Image
       alt="playing_card"
