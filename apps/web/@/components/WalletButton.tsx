@@ -34,7 +34,7 @@ export function WalletButton({
 
   if (Boolean(account.connection) && showAvatar && Boolean(account.address)) {
     return (
-      <button onClick={() => disconnectWallet()}>
+      <button type="button" onClick={() => disconnectWallet()}>
         <Suspense>
           <Avatar name={account.address ?? ""} size={32} variant="beam" />
         </Suspense>

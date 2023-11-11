@@ -13,7 +13,7 @@ import {
 import { Button } from "../../@/components/ui/button";
 import Avatar from "boring-avatars";
 import { Input } from "../../@/components/ui/input";
-import { useContext, useState } from "react";
+import { ReactNode, useContext, useState } from "react";
 import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
@@ -24,6 +24,7 @@ import {
 import Spinner from "../../@/components/ui/spinner";
 import { UserAccountContext } from "../../@/components/UserAccountProvider";
 import { WalletButton } from "../../@/components/WalletButton";
+import Image from "next/image";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -45,6 +46,10 @@ export default function Play() {
 
   if (gameState === "searching") {
     return <SearchingState setGameState={setGameState} />;
+  }
+
+  if (gameState === "playing") {
+    return <PlayingState setGameState={setGameState} />;
   }
 
   return <StartState setGameState={setGameState} />;
@@ -148,6 +153,9 @@ function StartState({
           <Button
             onClick={() => {
               setGameState("searching");
+              setTimeout(() => {
+                setGameState("playing");
+              }, 3000);
             }}
             className="min-w-[25%] whitespace-nowrap"
           >
@@ -199,5 +207,164 @@ function SearchingState({
         </Button>
       </Card>
     </main>
+  );
+}
+
+function PlayingState({
+  setGameState,
+}: {
+  setGameState: (state: GameState) => void;
+}) {
+  return (
+    <div className="grid grid-cols-3 gap-x-8 h-full">
+      <Log />
+      <main className="flex col-span-2 space-y-4 mx-auto justify-center items-center w-full h-full flex-col">
+        <BlackJackTable />
+      </main>
+    </div>
+  );
+}
+
+function BlackJackTable() {
+  return (
+    <div className="w-full h-full flex flex-col justify-between items-center">
+      <PlayingHand
+        player={"Dealer"}
+        cards={["clubs_ace", "spades_3", "spades_10"]}
+      />
+      <Card className="p-4 flex flex-col gap-y-2">
+        <span className="text-lg">Your Turn</span>
+        <div className="grid grid-cols-2 gap-x-2 items-center">
+          <Button>Hit</Button>
+          <Button>Stand</Button>
+        </div>
+      </Card>
+      <div className="w-full flex items-center justify-between">
+        <PlayingHand
+          player={"Player 1"}
+          cards={["clubs_ace", "spades_3", "spades_10"]}
+        />
+        <PlayingHand
+          player={"Player 2"}
+          cards={["diamonds_2", "spades_5", "hearts_jack"]}
+          busted
+        />
+      </div>
+    </div>
+  );
+}
+
+function PlayingHand({
+  player,
+  cards,
+  busted,
+}: {
+  player: string;
+  cards: string[];
+  busted?: boolean;
+}) {
+  return (
+    <Card className={`relative p-4 flex flex-col ${busted && "opacity-60"}`}>
+      {busted && (
+        <span className="text-3xl top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 bg-black absolute p-4 rounded-lg border border-gray-800 opacity-100">
+          Busted
+        </span>
+      )}
+      <span className="text-lg">{player}</span>
+      <span className="text-gray-400">Total Score: 12</span>
+      <ul className="flex gap-x-2 mt-2">
+        {cards.map((card) => {
+          const face = card.split("_")[0];
+          const value = card.split("_")[1];
+
+          if (!face || !value) return null;
+
+          return (
+            <li key={card}>
+              <PlayingCard face={face as CardFace} value={value as CardValue} />
+            </li>
+          );
+        })}
+      </ul>
+    </Card>
+  );
+}
+
+type CardFace = "clubs" | "diamonds" | "hearts" | "spades";
+type CardValue =
+  | "1"
+  | "2"
+  | "3"
+  | "4"
+  | "5"
+  | "6"
+  | "7"
+  | "8"
+  | "9"
+  | "10"
+  | "jack"
+  | "queen"
+  | "king"
+  | "ace";
+
+function PlayingCard({ face, value }: { face: CardFace; value: CardValue }) {
+  return (
+    <Image
+      alt="playing_card"
+      src={`/svg_playing_cards/fronts/${face}_${value}.svg`}
+      height={100}
+      width={100}
+    />
+  );
+}
+
+function Log() {
+  const log = [
+    {
+      key: "player1_joined",
+      child: <span>Player 1 has joined the game</span>,
+    },
+    {
+      key: "player2_joined",
+      child: <span>Player 2 has joined the game</span>,
+    },
+    {
+      key: "player2_msg_1",
+      child: (
+        <span>
+          Player 2: <span className="text-white">hi there :D </span>
+        </span>
+      ),
+    },
+  ];
+
+  return (
+    <Card className="p-4 flex flex-col">
+      <div className="h-full">
+        <h1 className="text-xl">Game Log</h1>
+        <hr className="border border-gray-900 my-2" />
+        <ul className="flex flex-col gap-y-2">
+          {log.map((logItem) => (
+            <li key={logItem.key}>
+              <LogItem text={logItem.child} />
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="flex  gap-x-2 w-full items-center">
+        <Input placeholder="Type a message..." />
+        <Button variant={"outline"}>Send</Button>
+      </div>
+    </Card>
+  );
+}
+
+function LogItem({ text }: { text: ReactNode }) {
+  const currentTime = new Date().toLocaleTimeString();
+  return (
+    <span>
+      <span className="text-gray-600">[{currentTime}]: </span>
+      <span className="text-gray-400">{text}</span>
+    </span>
   );
 }
