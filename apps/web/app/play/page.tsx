@@ -56,7 +56,7 @@ export default function Play() {
   if (gameState === "playing") {
     return <PlayingState setGameState={setGameState} />;
   }
-
+  
   return <StartState setGameState={setGameState} />;
 }
 
