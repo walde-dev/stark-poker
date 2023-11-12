@@ -13,7 +13,7 @@ import {
 import { Button } from "../../@/components/ui/button";
 import Avatar from "boring-avatars";
 import { Input } from "../../@/components/ui/input";
-import { ReactNode, useContext, useEffect, useState } from "react";
+import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
 import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
@@ -30,7 +30,7 @@ import {
   getCardByNumber,
   getRandomCard,
 } from "../../@/lib/utils";
-import { Contract } from "starknet";
+import { Contract, RpcProvider } from "starknet";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -67,6 +67,8 @@ function StartState({
   setGameState: (state: GameState) => void;
 }) {
   const account = useContext(UserAccountContext);
+
+  const [betInput, setBetInput] = useState(0);
 
   const { username, handleUsernameChange } = useUsername({
     address: account.address ?? "",
@@ -155,7 +157,15 @@ function StartState({
       <Card className="w-full flex flex-col p-4">
         <span className="text-gray-400">Set your bid and start playing!</span>
         <div className="flex items-center w-full mt-4 space-x-4">
-          <Input type={"number"} placeholder="Your Bet (in STRK)" />
+          <Input
+            type={"number"}
+            id="bet"
+            placeholder="Your Bet (in STRK)"
+            value={betInput}
+            onChange={(e) => {
+              setBetInput(parseInt(e.target.value));
+            }}
+          />
           <Button
             onClick={() => {
               setGameState("searching");
@@ -169,16 +179,32 @@ function StartState({
           </Button>
         </div>
         <div className="grid w-full mt-4 grid-cols-4 gap-x-2">
-          <Button size={"sm"} variant={"outline"}>
+          <Button
+            onClick={() => setBetInput((prev) => prev + 1)}
+            size={"sm"}
+            variant={"outline"}
+          >
             +1 STRK
           </Button>
-          <Button size={"sm"} variant={"outline"}>
+          <Button
+            onClick={() => setBetInput((prev) => prev + 10)}
+            size={"sm"}
+            variant={"outline"}
+          >
             +10 STRK
           </Button>
-          <Button size={"sm"} variant={"outline"}>
+          <Button
+            onClick={() => setBetInput((prev) => prev + 100)}
+            size={"sm"}
+            variant={"outline"}
+          >
             +100 STRK
           </Button>
-          <Button size={"sm"} variant={"outline"}>
+          <Button
+            onClick={() => setBetInput((prev) => prev + 1000)}
+            size={"sm"}
+            variant={"outline"}
+          >
             +1k STRK
           </Button>
         </div>
@@ -221,11 +247,13 @@ function PlayingState({
 }: {
   setGameState: (state: GameState) => void;
 }) {
+  const [logEvents, setLogEvents] = useState<any>([]);
+
   return (
     <div className="grid grid-cols-3 gap-x-8 h-full">
-      <Log />
+      <Log logEvents={logEvents} />
       <main className="flex col-span-2 space-y-4 mx-auto justify-center items-center w-full h-full flex-col">
-        <BlackJackTable />
+        <BlackJackTable setLogEvents={setLogEvents} />
       </main>
     </div>
   );
@@ -237,7 +265,7 @@ type CardWrapper = {
   encryptedBy2: number;
   owner: number;
 };
-function BlackJackTable() {
+function BlackJackTable({ setLogEvents }: { setLogEvents: any }) {
   const [gameState, setGameState] = useState<string>();
   const [handHouse, setHandHouse] = useState<Array<CardWrapper>>([]);
   const [handP1, setHandP1] = useState<Array<CardWrapper>>([]);
@@ -245,11 +273,17 @@ function BlackJackTable() {
 
   const account = useContext(UserAccountContext);
 
+  const providerRPC = new RpcProvider({
+    nodeUrl:
+      "https://starknet-goerli.infura.io/v3/2bd54ea6a60f49db925e37d3b0704529",
+  });
+
   useEffect(() => {
+    const testAddress =
+      "0x06164fdbb2a54ebc79d84f5b817f763a8530c865274394308d211d4d919d7024";
+
     const init = async () => {
       console.log("INIT");
-      const testAddress =
-        "0x06164fdbb2a54ebc79d84f5b817f763a8530c865274394308d211d4d919d7024";
 
       // @ts-expect-error aas
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- aa
@@ -285,10 +319,25 @@ function BlackJackTable() {
       setHandP2(handP2);
     };
 
+    const getEvents = async () => {
+      // for an Infura node on Testnet
+      const lastBlock = await providerRPC.getBlock("latest");
+      const eventsList = await providerRPC.getEvents({
+        address: testAddress,
+        from_block: { block_number: lastBlock.block_number - 9 },
+        to_block: { block_number: lastBlock.block_number },
+        keys: [[]],
+        chunk_size: 10,
+      });
+      console.log(eventsList);
+      setLogEvents(eventsList);
+    };
+
     init();
+    getEvents();
 
     const interval = setInterval(() => {
-      init();
+      getEvents();
     }, 3000);
 
     return () => clearInterval(interval);
@@ -416,8 +465,8 @@ function PlayingCard({ face, value }: { face?: CardFace; value?: CardValue }) {
   );
 }
 
-function Log() {
-  const log = [
+function Log({ logEvents }: { logEvents: any }) {
+  const mock = [
     {
       key: "player1_joined",
       child: <span>Player 1 has joined the game</span>,
@@ -436,6 +485,47 @@ function Log() {
     },
   ];
 
+  const [log, setLog] = useState(mock);
+
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const input = e.currentTarget.elements[0] as HTMLInputElement;
+    const message = input.value;
+    if (message) {
+      setLog((prev) => [
+        ...prev,
+        {
+          key: `player1_msg_${prev.length}`,
+          child: (
+            <span>
+              Player 1: <span className="text-white">{message}</span>
+            </span>
+          ),
+        },
+      ]);
+    }
+    input.value = "";
+  };
+
+  useEffect(() => {
+    const newEvents = logEvents.events?.map((event: any) => ({
+      key: `event_${event.transaction_hash}`,
+      child: (
+        <span>
+          [Block {event.block_number}] {event.transaction_hash.slice(0, 8)}...
+        </span>
+      ),
+    }));
+    if (!newEvents) return;
+    console.log("LOL", logEvents.events);
+    setLog((prev) => {
+      const nonEvents = prev.filter(
+        (logItem) => !logItem.key.includes("event")
+      );
+      return [...nonEvents, ...newEvents];
+    });
+  }, [logEvents]);
+
   return (
     <Card className="p-4 flex flex-col">
       <div className="h-full">
@@ -449,16 +539,23 @@ function Log() {
           ))}
         </ul>
       </div>
-      <div className="flex  gap-x-2 w-full items-center">
+      <form
+        onSubmit={handleSubmit}
+        className="flex  gap-x-2 w-full items-center"
+      >
         <Input placeholder="Type a message..." />
-        <Button variant={"outline"}>Send</Button>
-      </div>
+        <Button type="submit" variant={"outline"}>
+          Send
+        </Button>
+      </form>
     </Card>
   );
 }
 
 function LogItem({ text }: { text: ReactNode }) {
-  const currentTime = new Date().toLocaleTimeString();
+  const currentTime = useMemo(() => {
+    return new Date().toLocaleTimeString();
+  }, []);
   return (
     <span>
       <span className="text-gray-600">[{currentTime}]: </span>
