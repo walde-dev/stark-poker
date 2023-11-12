@@ -210,7 +210,7 @@ function StartState({
         </div>
       </Card>
       <span className="text-gray-400">
-        <span className="text-white">23</span> online players right now
+        <span className="text-white">2</span> online players right now
       </span>
     </main>
   );
