@@ -30,7 +30,7 @@ import {
   getCardByNumber,
   getRandomCard,
 } from "../../@/lib/utils";
-import { Contract, json } from "starknet";
+import { Contract } from "starknet";
 
 type GameState = "start" | "searching" | "playing" | "end";
 
@@ -239,9 +239,9 @@ type CardWrapper = {
 };
 function BlackJackTable() {
   const [gameState, setGameState] = useState<string>();
-  const [handHouse, setHandHouse] = useState<Array<number>>([]);
-  const [handP1, setHandP1] = useState<Array<number>>([]);
-  const [handP2, setHandP2] = useState<Array<number>>([]);
+  const [handHouse, setHandHouse] = useState<Array<CardWrapper>>([]);
+  const [handP1, setHandP1] = useState<Array<CardWrapper>>([]);
+  const [handP2, setHandP2] = useState<Array<CardWrapper>>([]);
 
   const account = useContext(UserAccountContext);
 
@@ -266,17 +266,17 @@ function BlackJackTable() {
       console.log("LOADING STATE");
       const state: Array<CardWrapper> =
         await myTestContract.readEncryptedCardStack();
-      let handHouse: Array<number> = [];
-      let handP1: Array<number> = [];
-      let handP2: Array<number> = [];
+      let handHouse: Array<CardWrapper> = [];
+      let handP1: Array<CardWrapper> = [];
+      let handP2: Array<CardWrapper> = [];
       for (let i = 0; i < state.length; i++) {
         console.log("STATE", state[i], i);
         if (state[i].owner == 3) {
-          handHouse.push(parseInt(state[i].card.toString()));
+          handHouse.push(state[i]);
         } else if (state[i].owner == 1) {
-          handP1.push(parseInt(state[i].card.toString()));
+          handP1.push(state[i]);
         } else if (state[i].owner == 2) {
-          handP2.push(parseInt(state[i].card.toString()));
+          handP2.push(state[i]);
         }
       }
       console.log("STATE LOADED", handHouse);
@@ -286,15 +286,25 @@ function BlackJackTable() {
     };
 
     init();
-  }, []);
 
-  console.log(handHouse, handP1, handP2);
+    const interval = setInterval(() => {
+      init();
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <div className="w-full h-full flex flex-col justify-between items-center">
       <PlayingHand
         player={"Dealer"}
-        cards={handHouse.map((c) => getCardByNumber(c))}
+        cards={handHouse.map((c) =>
+          getCardByNumber(
+            Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
+              ? 53
+              : parseInt(c.card.toString())
+          )
+        )}
       />
       <Card className="p-4 flex flex-col gap-y-2">
         <span className="text-lg">Your Turn</span>
@@ -306,11 +316,23 @@ function BlackJackTable() {
       <div className="w-full flex items-center justify-between">
         <PlayingHand
           player={"Player 1"}
-          cards={handP1.map((c) => getCardByNumber(c))}
+          cards={handP1.map((c) =>
+            getCardByNumber(
+              Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
+                ? 53
+                : parseInt(c.card.toString())
+            )
+          )}
         />
         <PlayingHand
           player={"Player 2"}
-          cards={handP2.map((c) => getCardByNumber(c))}
+          cards={handP2.map((c) =>
+            getCardByNumber(
+              Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
+                ? 53
+                : parseInt(c.card.toString())
+            )
+          )}
         />
       </div>
     </div>
@@ -319,7 +341,11 @@ function BlackJackTable() {
 
 function PlayingHand({ player, cards }: { player: string; cards: string[] }) {
   const score = calculateScore({
-    cards: cards.map((card) => card.split("_")[1] as CardValue),
+    cards: cards
+      .filter(
+        (card) => !!card.split("_")[0] && card.split("_")[0] != "undefined"
+      )
+      .map((card) => card.split("_")[1] as CardValue),
   });
 
   const busted = score > 21;
@@ -351,7 +377,7 @@ function PlayingHand({ player, cards }: { player: string; cards: string[] }) {
   );
 }
 
-export type CardFace = "clubs" | "diamonds" | "hearts" | "spades";
+export type CardFace = "clubs" | "diamonds" | "hearts" | "spades" | "undefined";
 export type CardValue =
   | "1"
   | "2"
@@ -366,10 +392,11 @@ export type CardValue =
   | "jack"
   | "queen"
   | "king"
-  | "ace";
+  | "ace"
+  | "undefined";
 
 function PlayingCard({ face, value }: { face?: CardFace; value?: CardValue }) {
-  if (!face || !value) {
+  if (!face || !value || face === "undefined" || value === "undefined") {
     return (
       <Image
         alt="playing_card"
