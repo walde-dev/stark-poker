@@ -171,7 +171,7 @@ function StartState({
               setGameState("searching");
               setTimeout(() => {
                 setGameState("playing");
-              }, 300);
+              }, 2000);
             }}
             className="min-w-[25%] whitespace-nowrap"
           >
