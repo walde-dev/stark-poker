@@ -2,5 +2,6 @@
   "dependencies": {
     "fs": "^0.0.1-security",
     "starknet": "^5.19.5"
-  }
+  },
+  "private": true
 }

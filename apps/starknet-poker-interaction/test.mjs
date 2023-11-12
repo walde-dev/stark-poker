@@ -175,6 +175,9 @@ async function test() {
       cardStack.length,
       cardStack.map((card) => parseInt(card.card)).sort()
     );
+
+    const subKey = await myTestContract.submitKey(1, key1);
+    const subKey2 = await myTestContract2.submitKey(2, key2);
   }
 }
 
