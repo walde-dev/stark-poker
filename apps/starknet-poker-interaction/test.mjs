@@ -17,13 +17,11 @@ const provider = new Provider({
 const key1 = 23;
 const key2 = 19;
 
-const privateKey =
-  "0x053fdf19e5f3aab906fa24246905a5b1f768f2d1be4d918b6f504d3f319db102";
+const privateKey = "";
 const accountAddress =
   "0x04267aF1cdb394c1a777831848cB733a9b731C8a65F54A70BCF3CeF8C78DC99D";
 
-const privateKey2 =
-  "0x0582514ce7bc5ab496ab6c4a93914d0db248a189383edfe8a211811c0fa436cb";
+const privateKey2 = "";
 const accountAddress2 =
   "0x05D7bB4b75167a4d0018ab6C76272492Eb5B764a6E926f20646Ac3121807b454";
 
