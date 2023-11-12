@@ -1,0 +1,147 @@
+[
+  {
+    "type": "impl",
+    "name": "CardContract",
+    "interface_name": "contract_poker::contract::ICardContract"
+  },
+  {
+    "type": "struct",
+    "name": "contract_poker::utils::gametypes::gamestates::CardWrapper",
+    "members": [
+      {
+        "name": "card",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "encryptedBy1",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "encryptedBy2",
+        "type": "core::integer::u8"
+      },
+      {
+        "name": "clearvalue",
+        "type": "core::integer::u8"
+      }
+    ]
+  },
+  {
+    "type": "interface",
+    "name": "contract_poker::contract::ICardContract",
+    "items": [
+      {
+        "type": "function",
+        "name": "writeC",
+        "inputs": [
+          {
+            "name": "index",
+            "type": "core::integer::u8"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "core::integer::u8"
+          }
+        ],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "readC",
+        "inputs": [
+          {
+            "name": "index",
+            "type": "core::integer::u8"
+          }
+        ],
+        "outputs": [
+          {
+            "type": "contract_poker::utils::gametypes::gamestates::CardWrapper"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "readCardStack",
+        "inputs": [],
+        "outputs": [
+          {
+            "type": "core::array::Array::<contract_poker::utils::gametypes::gamestates::CardWrapper>"
+          }
+        ],
+        "state_mutability": "view"
+      },
+      {
+        "type": "function",
+        "name": "initStack",
+        "inputs": [],
+        "outputs": [],
+        "state_mutability": "external"
+      },
+      {
+        "type": "function",
+        "name": "setEncryptedCards",
+        "inputs": [
+          {
+            "name": "playerId",
+            "type": "core::integer::u8"
+          },
+          {
+            "name": "encryptedCards",
+            "type": "core::array::Array::<core::integer::u8>"
+          }
+        ],
+        "outputs": [],
+        "state_mutability": "external"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "contract_poker::contract::CardContract::TakenCards",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "user",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      },
+      {
+        "name": "id",
+        "type": "core::integer::u8",
+        "kind": "data"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "contract_poker::contract::CardContract::InitedStack",
+    "kind": "struct",
+    "members": [
+      {
+        "name": "user",
+        "type": "core::starknet::contract_address::ContractAddress",
+        "kind": "key"
+      }
+    ]
+  },
+  {
+    "type": "event",
+    "name": "contract_poker::contract::CardContract::Event",
+    "kind": "enum",
+    "variants": [
+      {
+        "name": "TakenCards",
+        "type": "contract_poker::contract::CardContract::TakenCards",
+        "kind": "nested"
+      },
+      {
+        "name": "InitedStack",
+        "type": "contract_poker::contract::CardContract::InitedStack",
+        "kind": "nested"
+      }
+    ]
+  }
+]
