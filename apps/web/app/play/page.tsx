@@ -13,7 +13,16 @@ import {
 import { Button } from "../../@/components/ui/button";
 import Avatar from "boring-avatars";
 import { Input } from "../../@/components/ui/input";
-import { ReactNode, useContext, useEffect, useMemo, useState } from "react";
+import {
+  Dispatch,
+  ReactNode,
+  SetStateAction,
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { useToast } from "../../@/components/ui/use-toast";
 import {
   Card,
@@ -32,10 +41,56 @@ import {
 } from "../../@/lib/utils";
 import { Contract, RpcProvider } from "starknet";
 
-type GameState = "start" | "searching" | "playing" | "end";
+import { DataConnection, Peer } from "peerjs";
+import { TrialState } from "./test";
+import { EventType, PlayerDetailsT, PlayingCardT } from "./types";
+import { Log } from "./Log";
+import { BlackJackTable } from "./gameDisplay";
 
+export type GameState = "start" | "searching" | "playing" | "end" | "test";
+interface GameContextI {
+  dconn: DataConnection | undefined;
+  cardState: Array<PlayingCardT>;
+  playerDetails: PlayerDetailsT;
+  setDconn: (value: any) => void | undefined;
+  setCardState: (value: SetStateAction<PlayingCardT[]>) => void | undefined;
+  setPlayerDetails: (
+    value: SetStateAction<{
+      key: number;
+      playerId: number;
+    }>
+  ) => void | undefined;
+}
+
+const initialState: GameContextI = {} as GameContextI;
+export const GameContext = createContext(initialState);
+export function useGame() {
+  return useContext(GameContext);
+}
+const GameContextProvider = (props) => {
+  const [gameState, setGameState] = useState(undefined);
+  const [cardState, setCardState] = useState<Array<PlayingCardT>>([]);
+  const [playerDetails, setPlayerDetails] = useState({
+    key: Math.round(Math.random() * 256),
+    playerId: 0,
+  });
+  return (
+    <GameContext.Provider
+      value={{
+        dconn: gameState,
+        setDconn: setGameState,
+        playerDetails: playerDetails,
+        cardState: cardState,
+        setCardState: setCardState,
+        setPlayerDetails: setPlayerDetails,
+      }}
+    >
+      {props.children}
+    </GameContext.Provider>
+  );
+};
 export default function Play() {
-  const [gameState, setGameState] = useState<GameState>("start");
+  const [gameState, setGameState] = useState<GameState>("playing");
 
   const account = useContext(UserAccountContext);
 
@@ -55,7 +110,15 @@ export default function Play() {
   }
 
   if (gameState === "playing") {
-    return <PlayingState setGameState={setGameState} />;
+    return (
+      <GameContextProvider>
+        <PlayingState setGameState={setGameState} />;
+      </GameContextProvider>
+    );
+  }
+
+  if (gameState === "test") {
+    return <div>broken</div>;
   }
 
   return <StartState setGameState={setGameState} />;
@@ -75,6 +138,9 @@ function StartState({
   });
 
   const { toast } = useToast();
+  const [peer, setPeer] = useState<DataConnection>();
+
+  useEffect(() => {}, []);
 
   const [usernameInput, setUsernameInput] = useState("");
   return (
@@ -83,6 +149,14 @@ function StartState({
         <Card className="flex w-full flex-col">
           <CardHeader>
             <CardTitle>Your Profile</CardTitle>
+            <Button
+              onClick={() => {
+                setGameState("test");
+              }}
+              variant={"link"}
+            >
+              enter tesmode
+            </Button>
           </CardHeader>
           <CardContent className="flex items-center space-x-4">
             <Avatar variant={"beam"} size={32} name={account.address ?? ""} />
@@ -207,6 +281,64 @@ function StartState({
           >
             +1k STRK
           </Button>
+          <Button
+            onClick={() => {
+              // console.log("PEER", peer);
+              // if (peer) {
+              //   peer.send("Hello!");
+              //   console.log("SENT");
+              //   // peer?.getConnection("asddff",)?.send("Hello!");
+              // }
+              console.log("INIT PEER");
+              const peer = new Peer("tpc");
+              // var conn = peer.connect("asddff");
+              peer.on("open", function () {
+                console.log("Connected to peer");
+              });
+              peer.on("connection", function (dconn: DataConnection) {
+                console.log("CONNECTED TO PEER", dconn);
+                dconn.on("data", function (data) {
+                  // Will print 'hi!'
+                  console.log(data);
+                });
+                dconn.send("Hello!");
+              });
+              // conn.connect();
+              // setPeer(conn);
+            }}
+          >
+            Test
+          </Button>
+          <Button
+            onClick={() => {
+              // console.log("PEER", peer);
+              // if (peer) {
+              //   peer.send("Hello!");
+              //   console.log("SENT");
+              //   // peer?.getConnection("asddff",)?.send("Hello!");
+              // }
+              console.log("INIT PEER");
+              const peer = new Peer("myself");
+              peer.on("open", function (id) {
+                console.log("Connected to peer", id);
+                var conn = peer.connect("tpc");
+                conn.on("open", function () {
+                  console.log("Connected to peer");
+                  conn.send("hi!");
+                });
+                conn.on("data", function (data) {
+                  // Will print 'hi!'
+                  console.log("GOT");
+                  console.log(data);
+                });
+              });
+
+              // conn.connect();
+              // setPeer(conn);
+            }}
+          >
+            Test Connect
+          </Button>
         </div>
       </Card>
       <span className="text-gray-400">
@@ -247,319 +379,20 @@ function PlayingState({
 }: {
   setGameState: (state: GameState) => void;
 }) {
-  const [logEvents, setLogEvents] = useState<any>([]);
+  const [logEvents, setLogEvents] = useState<EventType[]>([]);
 
-  return (
-    <div className="grid grid-cols-3 gap-x-8 h-full">
-      <Log logEvents={logEvents} />
-      <main className="flex col-span-2 space-y-4 mx-auto justify-center items-center w-full h-full flex-col">
-        <BlackJackTable setLogEvents={setLogEvents} />
-      </main>
-    </div>
-  );
-}
-
-type CardWrapper = {
-  card: number;
-  encryptedBy1: number;
-  encryptedBy2: number;
-  owner: number;
-};
-function BlackJackTable({ setLogEvents }: { setLogEvents: any }) {
-  const [gameState, setGameState] = useState<string>();
-  const [handHouse, setHandHouse] = useState<Array<CardWrapper>>([]);
-  const [handP1, setHandP1] = useState<Array<CardWrapper>>([]);
-  const [handP2, setHandP2] = useState<Array<CardWrapper>>([]);
-
-  const account = useContext(UserAccountContext);
-
-  const providerRPC = new RpcProvider({
-    nodeUrl:
-      "https://starknet-goerli.infura.io/v3/2bd54ea6a60f49db925e37d3b0704529",
-  });
-
-  useEffect(() => {
-    const testAddress =
-      "0x06164fdbb2a54ebc79d84f5b817f763a8530c865274394308d211d4d919d7024";
-
-    const init = async () => {
-      console.log("INIT");
-
-      // @ts-expect-error aas
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call -- aa
-      const { abi: testAbi } = await account.provider.getClassAt(testAddress);
-
-      const myTestContract = new Contract(
-        testAbi,
-        testAddress,
-        account.provider as unknown as any
-      );
-      if (testAbi === undefined) {
-        throw new Error("no abi.");
-      }
-      console.log("LOADING STATE");
-      const state: Array<CardWrapper> =
-        await myTestContract.readEncryptedCardStack();
-      let handHouse: Array<CardWrapper> = [];
-      let handP1: Array<CardWrapper> = [];
-      let handP2: Array<CardWrapper> = [];
-      for (let i = 0; i < state.length; i++) {
-        console.log("STATE", state[i], i);
-        if (state[i].owner == 3) {
-          handHouse.push(state[i]);
-        } else if (state[i].owner == 1) {
-          handP1.push(state[i]);
-        } else if (state[i].owner == 2) {
-          handP2.push(state[i]);
-        }
-      }
-      console.log("STATE LOADED", handHouse);
-      setHandHouse(handHouse);
-      setHandP1(handP1);
-      setHandP2(handP2);
-    };
-
-    const getEvents = async () => {
-      // for an Infura node on Testnet
-      const lastBlock = await providerRPC.getBlock("latest");
-      const eventsList = await providerRPC.getEvents({
-        address: testAddress,
-        from_block: { block_number: lastBlock.block_number - 9 },
-        to_block: { block_number: lastBlock.block_number },
-        keys: [[]],
-        chunk_size: 10,
-      });
-      console.log(eventsList);
-      setLogEvents(eventsList);
-    };
-
-    init();
-    getEvents();
-
-    const interval = setInterval(() => {
-      getEvents();
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  return (
-    <div className="w-full h-full flex flex-col justify-between items-center">
-      <PlayingHand
-        player={"Dealer"}
-        cards={handHouse.map((c) =>
-          getCardByNumber(
-            Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
-              ? 53
-              : parseInt(c.card.toString())
-          )
-        )}
-      />
-      <Card className="p-4 flex flex-col gap-y-2">
-        <span className="text-lg">Your Turn</span>
-        <div className="grid grid-cols-2 gap-x-2 items-center">
-          <Button>Hit</Button>
-          <Button>Stand</Button>
-        </div>
-      </Card>
-      <div className="w-full flex items-center justify-between">
-        <PlayingHand
-          player={"Player 1"}
-          cards={handP1.map((c) =>
-            getCardByNumber(
-              Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
-                ? 53
-                : parseInt(c.card.toString())
-            )
-          )}
-        />
-        <PlayingHand
-          player={"Player 2"}
-          cards={handP2.map((c) =>
-            getCardByNumber(
-              Boolean(c.encryptedBy1) || Boolean(c.encryptedBy2)
-                ? 53
-                : parseInt(c.card.toString())
-            )
-          )}
-        />
-      </div>
-    </div>
-  );
-}
-
-function PlayingHand({ player, cards }: { player: string; cards: string[] }) {
-  const score = calculateScore({
-    cards: cards
-      .filter(
-        (card) => !!card.split("_")[0] && card.split("_")[0] != "undefined"
-      )
-      .map((card) => card.split("_")[1] as CardValue),
-  });
-
-  const busted = score > 21;
-
-  return (
-    <Card className={`relative p-4 flex flex-col ${busted && "opacity-60"}`}>
-      {busted && (
-        <span className="text-3xl top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 bg-black absolute p-4 rounded-lg border border-gray-800 opacity-100">
-          Busted
-        </span>
-      )}
-      <span className="text-lg">{player}</span>
-      {Boolean(score) && !isNaN(score) && (
-        <span className="text-gray-400">Total Score: {score}</span>
-      )}{" "}
-      <ul className="flex gap-x-2 mt-2">
-        {cards.map((card) => {
-          const face = card.split("_")[0];
-          const value = card.split("_")[1];
-
-          return (
-            <li key={card}>
-              <PlayingCard face={face as CardFace} value={value as CardValue} />
-            </li>
-          );
-        })}
-      </ul>
-    </Card>
-  );
-}
-
-export type CardFace = "clubs" | "diamonds" | "hearts" | "spades" | "undefined";
-export type CardValue =
-  | "1"
-  | "2"
-  | "3"
-  | "4"
-  | "5"
-  | "6"
-  | "7"
-  | "8"
-  | "9"
-  | "10"
-  | "jack"
-  | "queen"
-  | "king"
-  | "ace"
-  | "undefined";
-
-function PlayingCard({ face, value }: { face?: CardFace; value?: CardValue }) {
-  if (!face || !value || face === "undefined" || value === "undefined") {
-    return (
-      <Image
-        alt="playing_card"
-        src={`/svg_playing_cards/backs/red.svg`}
-        height={100}
-        width={100}
-      />
-    );
+  function addLog(log: EventType) {
+    console.log("LOG", log);
+    setLogEvents((prev) => [...prev, log]);
   }
   return (
-    <Image
-      alt="playing_card"
-      src={`/svg_playing_cards/fronts/${face}_${value}.svg`}
-      height={100}
-      width={100}
-    />
-  );
-}
-
-function Log({ logEvents }: { logEvents: any }) {
-  const mock = [
-    {
-      key: "player1_joined",
-      child: <span>Player 1 has joined the game</span>,
-    },
-    {
-      key: "player2_joined",
-      child: <span>Player 2 has joined the game</span>,
-    },
-    {
-      key: "player2_msg_1",
-      child: (
-        <span>
-          Player 2: <span className="text-white">hi there :D </span>
-        </span>
-      ),
-    },
-  ];
-
-  const [log, setLog] = useState(mock);
-
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const input = e.currentTarget.elements[0] as HTMLInputElement;
-    const message = input.value;
-    if (message) {
-      setLog((prev) => [
-        ...prev,
-        {
-          key: `player1_msg_${prev.length}`,
-          child: (
-            <span>
-              Player 1: <span className="text-white">{message}</span>
-            </span>
-          ),
-        },
-      ]);
-    }
-    input.value = "";
-  };
-
-  useEffect(() => {
-    const newEvents = logEvents.events?.map((event: any) => ({
-      key: `event_${event.transaction_hash}`,
-      child: (
-        <span>
-          [Block {event.block_number}] {event.transaction_hash.slice(0, 8)}...
-        </span>
-      ),
-    }));
-    if (!newEvents) return;
-    console.log("LOL", logEvents.events);
-    setLog((prev) => {
-      const nonEvents = prev.filter(
-        (logItem) => !logItem.key.includes("event")
-      );
-      return [...nonEvents, ...newEvents];
-    });
-  }, [logEvents]);
-
-  return (
-    <Card className="p-4 flex flex-col">
-      <div className="h-full">
-        <h1 className="text-xl">Game Log</h1>
-        <hr className="border border-gray-900 my-2" />
-        <ul className="flex flex-col gap-y-2">
-          {log.map((logItem) => (
-            <li key={logItem.key}>
-              <LogItem text={logItem.child} />
-            </li>
-          ))}
-        </ul>
-      </div>
-      <form
-        onSubmit={handleSubmit}
-        className="flex  gap-x-2 w-full items-center"
-      >
-        <Input placeholder="Type a message..." />
-        <Button type="submit" variant={"outline"}>
-          Send
-        </Button>
-      </form>
-    </Card>
-  );
-}
-
-function LogItem({ text }: { text: ReactNode }) {
-  const currentTime = useMemo(() => {
-    return new Date().toLocaleTimeString();
-  }, []);
-  return (
-    <span>
-      <span className="text-gray-600">[{currentTime}]: </span>
-      <span className="text-gray-400">{text}</span>
-    </span>
+    <div className="grid grid-cols-3 gap-x-8 h-full">
+      <Log logEvents={{ events: logEvents }} addToLog={addLog} />
+      <main className="flex col-span-2 space-y-4 mx-auto justify-center items-center w-full h-full flex-col">
+        {/* <BlackJackTable setLogEvents={setLogEvents} /> */}
+        <TrialState setGameState={setGameState} addLog={addLog} />
+        <BlackJackTable />
+      </main>
+    </div>
   );
 }

@@ -1,11 +1,12 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import type { CardValue } from "../../app/play/page";
+import { CardValue } from "../../app/play/types";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+export function calculateScoreFromNumbers({ cards }: { cards: number[] }) {}
 export function calculateScore({ cards }: { cards: CardValue[] }) {
   //calculate the score by converting the value to an int, jack, king and queen are 10, ace is also 10 unless the score is over 21 then it is 1
   let score = 0;
