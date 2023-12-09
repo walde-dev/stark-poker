@@ -161,7 +161,6 @@ export function TrialState({
           sendState(newState, comConn);
           gameContext.setCardState(newState);
           console.log("SET STATE", newState);
-          alert("HIT Solve");
         }
       }
       if (action === "stand") {
@@ -179,12 +178,19 @@ export function TrialState({
   }
   useEffect(() => {
     console.log("clientType", clientType);
+    if (!account.address) {
+      alert("Account not properly connected, reconnect and try again");
+      return;
+    }
+    let myname = account.address.toLowerCase().replace("0x0", "0x");
+    let connectName = usernameInput?.toLowerCase().replace("0x0", "0x");
     if (clientType === "server") {
       addStringLog("INIT PEER");
-      const peer = new Peer(usernameInput);
+
+      const peer = new Peer(myname);
       // var conn = peer.connect("asddff");
-      peer.on("open", function () {
-        addStringLog("Connected to peer" + usernameInput);
+      peer.on("open", function (name) {
+        addStringLog("Connected to peer\n" + name);
       });
       peer.on("connection", function (dconn: DataConnection) {
         addStringLog("CONNECTED TO PEER" + dconn);
@@ -203,10 +209,11 @@ export function TrialState({
       });
     }
     if (clientType == "client") {
-      const peer = new Peer("client");
+      const peer = new Peer(myname);
       peer.on("open", function () {
-        addStringLog("Connected to peer as client" + usernameInput);
-        var conn = peer.connect(usernameInput);
+        addStringLog("Connected to peer as client " + myname);
+        var conn = peer.connect(connectName);
+        addStringLog("Connecting to host:" + connectName);
         conn.on("open", function () {
           // Receive messages
           addStringLog("CONNECTED TO PEER" + conn);
