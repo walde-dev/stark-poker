@@ -1,3 +1,4 @@
+import { type } from "os";
 import { ReactNode } from "react";
 
 export type EventType = {
@@ -30,3 +31,4 @@ export type CardValue =
   | "ace"
   | "undefined";
 export type PlayerDetailsT = { key: number; playerId: number };
+export type OpponentDetailsT = { address: string; name: string | undefined };

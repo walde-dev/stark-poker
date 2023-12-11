@@ -8,12 +8,13 @@
 "use client";
 
 import { Button } from "./ui/button";
-import { Suspense, useContext } from "react";
+import { Suspense, useContext, useEffect, useState } from "react";
 import Avatar from "boring-avatars";
 import Link from "next/link";
 import useAccount from "../lib/useAccount";
 import { UserAccountContext } from "./UserAccountProvider";
 import { connect, disconnect } from "starknetkit";
+import { enterCasino, getFunds } from "../../app/play/contractInteractions";
 
 export function WalletButton({
   className,
@@ -22,8 +23,16 @@ export function WalletButton({
   className?: string;
   showAvatar?: boolean;
 }) {
+  const [funds, setFunds] = useState<number>(0);
   const account = useContext(UserAccountContext);
-
+  useEffect(() => {
+    if (account.contract) {
+      getFunds(account).then((funds) => {
+        setFunds(funds);
+        console.log("fundsSET", funds);
+      });
+    }
+  }, [account.contract, account.lastBlockheight]);
   const disconnectWallet = async () => {
     await disconnect();
 
@@ -44,9 +53,23 @@ export function WalletButton({
 
   if (Boolean(account.connection) && !showAvatar) {
     return (
-      <Button className={className}>
-        <Link href="/play">Start playing</Link>
-      </Button>
+      <div>
+        <Button className={className}>
+          <Link href="/play">Start playing</Link>
+        </Button>
+        <Button
+          className={className}
+          onClick={() =>
+            enterCasino(account).then(() => {
+              account.setLastBlockheight?.(account.lastBlockheight + 1);
+            })
+          }
+          disabled={funds !== 0}
+        >
+          Enter Casino ({funds} chips)
+        </Button>
+        @{account.lastBlockheight}
+      </div>
     );
   }
 

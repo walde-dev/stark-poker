@@ -43,7 +43,12 @@ import { Contract, RpcProvider } from "starknet";
 
 import { DataConnection, Peer } from "peerjs";
 import { TrialState } from "./test";
-import { EventType, PlayerDetailsT, PlayingCardT } from "./types";
+import {
+  EventType,
+  OpponentDetailsT,
+  PlayerDetailsT,
+  PlayingCardT,
+} from "./types";
 import { Log } from "./Log";
 import { BlackJackTable } from "./gameDisplay";
 
@@ -52,6 +57,7 @@ interface GameContextI {
   dconn: DataConnection | undefined;
   cardState: Array<PlayingCardT>;
   playerDetails: PlayerDetailsT;
+  opponentDetails: OpponentDetailsT | undefined;
   setDconn: (value: any) => void | undefined;
   setCardState: (value: SetStateAction<PlayingCardT[]>) => void | undefined;
   setPlayerDetails: (
@@ -59,6 +65,9 @@ interface GameContextI {
       key: number;
       playerId: number;
     }>
+  ) => void | undefined;
+  setOpponentDetails: (
+    value: SetStateAction<OpponentDetailsT>
   ) => void | undefined;
 }
 
@@ -70,6 +79,7 @@ export function useGame() {
 const GameContextProvider = (props) => {
   const [gameState, setGameState] = useState(undefined);
   const [cardState, setCardState] = useState<Array<PlayingCardT>>([]);
+  const [opponentDetails, setOpponentDetails] = useState<OpponentDetailsT>();
   const [playerDetails, setPlayerDetails] = useState({
     key: Math.round(Math.random() * 256),
     playerId: 0,
@@ -81,6 +91,8 @@ const GameContextProvider = (props) => {
         setDconn: setGameState,
         playerDetails: playerDetails,
         cardState: cardState,
+        opponentDetails: opponentDetails,
+        setOpponentDetails: setOpponentDetails,
         setCardState: setCardState,
         setPlayerDetails: setPlayerDetails,
       }}

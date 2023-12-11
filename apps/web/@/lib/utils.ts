@@ -6,7 +6,23 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
-export function calculateScoreFromNumbers({ cards }: { cards: number[] }) {}
+export function calculateScoreFromNumbers({ cards }: { cards: number[] }) {
+  return cards.reduce((acc, card) => acc + scoreOfCardNumber(card), 0);
+}
+
+export function scoreOfCardNumber(card: number) {
+  const value = card % 13;
+  if (value === 1) {
+    return 11;
+  } else if (value > 9) {
+    return 10;
+  } else {
+    return value;
+  }
+}
+export function isBusted({ cards }: { cards: number[] }) {
+  return calculateScoreFromNumbers({ cards }) > 21;
+}
 export function calculateScore({ cards }: { cards: CardValue[] }) {
   //calculate the score by converting the value to an int, jack, king and queen are 10, ace is also 10 unless the score is over 21 then it is 1
   let score = 0;

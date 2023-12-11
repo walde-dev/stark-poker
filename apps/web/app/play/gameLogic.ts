@@ -1,3 +1,4 @@
+import { getSHA256Hash } from "boring-webcrypto-sha256";
 import { PlayingCardT } from "./types";
 
 export async function setStartingHand(
@@ -21,4 +22,15 @@ export function getNextCardIndex(
     }
   }
   return undefined;
+}
+export async function hashStack(stack: Array<PlayingCardT>): Promise<string> {
+  let hashString = "";
+  for (let i = 0; i < stack.length; i++) {
+    hashString += stack[i].card;
+    hashString += stack[i].encryptedBy1;
+    hashString += stack[i].encryptedBy2;
+    hashString += stack[i].owner;
+  }
+  const hash = await getSHA256Hash(hashString);
+  return hash;
 }

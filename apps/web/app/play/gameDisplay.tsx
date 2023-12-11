@@ -91,13 +91,13 @@ export function BlackJackTable() {
           )
         )}
       />
-      <Card className="p-4 flex flex-col gap-y-2">
+      {/* <Card className="p-4 flex flex-col gap-y-2">
         <span className="text-lg">Your Turn</span>
         <div className="grid grid-cols-2 gap-x-2 items-center">
           <Button>Hit</Button>
           <Button>Stand</Button>
         </div>
-      </Card>
+      </Card> */}
       <div className="w-full flex items-center justify-between">
         <PlayingHand
           player={"Player 1"}
